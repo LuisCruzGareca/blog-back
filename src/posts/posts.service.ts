@@ -8,9 +8,7 @@ export class PostsService {
   constructor(private prismaService: PrismaService) {}
   //aca esta el nombre del metodo y en este metodo resibe el objto tipado
   async createPost(createPostDto: CreatePostDto) {
-    //y la linea de this esta diciendo al prisma que use la funcion create  para luego pasarle un objto a data con la informacion
-    return this.prismaService.post.create({
-      // en data estamos pasando toda la informacion a la base de datos
+    const post = await this.prismaService.post.create({
       data: {
         title: createPostDto.title,
         content: createPostDto.content,
@@ -18,14 +16,41 @@ export class PostsService {
         author: {
           connect: { id: createPostDto.authorId }, // relación con usuario
         },
+        // Relación con categorías
+        postCategories: {
+          create: createPostDto.categories.map((categoryId) => ({
+            categoriesId: categoryId,
+          })),
+        },
       },
     });
+    // for (const categoryId of createPostDto.categories) {
+    //   return await this.prismaService.postCategories.create({
+    //     data: {
+    //       postId: post.id,
+    //       categoriesId: categoryId,
+    //     },
+    //   });
+    // }
+    return post;
   }
 
   async findAll() {
-    return this.prismaService.post.findMany();
+    return this.prismaService.post.findMany({
+      include: {
+        postCategories: {
+          include: {
+            categorie: true, // incluir la información de la categoría
+          },
+        },
+      },
+    });
   }
-
+  async findOne(id: number) {
+    return this.prismaService.post.findUnique({
+      where: { id },
+    });
+  }
   async deletePost(id: number) {
     //where nos sirve para identificar que  parte va afectar por ejemplo el id
     await this.prismaService.post.delete({ where: { id } });

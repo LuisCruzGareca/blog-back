@@ -30,4 +30,26 @@ model Post{
     updatedAt    DateTime @updatedAt
     authorId Int
     author   User   @relation(fields: [authorId], references: [id])
+    postCategories PostCategories[]
+
+}
+
+model Categories{
+  id Int @id @default(autoincrement())
+  name String
+  createAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postCategories PostCategories[]
+}
+
+
+model PostCategories {
+  postId Int
+  categoriesId  Int
+  addedAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+  categorie  Categories  @relation(fields: [categoriesId], references: [id])
+
+  @@id([postId, categoriesId]) 
 }
