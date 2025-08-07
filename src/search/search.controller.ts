@@ -1,7 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { ConfigService } from '@nestjs/config';
-import { PostsService } from 'src/posts/posts.service';
 
 @Controller('search')
 export class SearchController {
@@ -11,9 +10,14 @@ export class SearchController {
   ) {}
 
   @Get('posts/list/:page')
-  findAll(@Param('page', ParseIntPipe) page: number) {
+  async findAll(@Param('page', ParseIntPipe) page: number) {
     //retorname el objeto que esta en postService con el nombre que cree que es findAll
-    return this.searchService.searchPost(page);
+    const posts = await this.searchService.searchPost(page);
+    const totalPost = await this.searchService.totalPost();
+    const totalPages = Math.ceil(
+      totalPost / parseInt(this.configService.get('POST_PAGE') ?? '10'),
+    );
+    return { posts: posts, totalPages: totalPages };
   }
   //define una ruta  hhtp Get
   @Get('posts/list/:page/:categoryName')
@@ -21,6 +25,33 @@ export class SearchController {
     @Param('page', ParseIntPipe) page: number,
     @Param('categoryName') categoryName?: string,
   ) {
-    return this.searchService.searchPost(page, categoryName);
+    const posts = await this.searchService.searchPost(page, categoryName);
+    const totalPost = await this.searchService.totalPost(categoryName);
+    const totalPages = Math.ceil(
+      totalPost / parseInt(this.configService.get('POST_PAGE') ?? '10'),
+    );
+    return { posts: posts, totalPages: totalPages };
+  }
+
+  //FILTRO POR ORDENACION
+  @Get('posts/list/:page/:categoryName/:orderBy')
+  async searchPostCategoryOrderby(
+    @Param('page', ParseIntPipe) page: number,
+    @Param('categoryName') categoryName?: string,
+    @Param('orderBy') orderBy?: string,
+  ) {
+    categoryName = categoryName === 'all' ? undefined : categoryName;
+    const posts = await this.searchService.searchPost(
+      page,
+      categoryName,
+      orderBy,
+    );
+    const totalPost = await this.searchService.totalPost(categoryName);
+
+    const totalPages = Math.ceil(
+      totalPost / parseInt(this.configService.get('POST_PAGE') ?? '10'),
+    );
+
+    return { posts: posts, totalPages: totalPages };
   }
 }
