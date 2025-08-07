@@ -7,13 +7,17 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PostsService } from './posts/posts.service';
 import { UserModule } from './user/user.module';
 import { CategoriesModule } from './categories/categories.module';
-import { NombreModule } from './nombre/nombre.module';
 import { SearchModule } from './search/search.module';
-import { ServiceController } from './service/service.controller';
 
 @Module({
-  imports: [PostsModule, PrismaModule, UserModule, CategoriesModule, NombreModule, SearchModule],
-  controllers: [AppController, PostsController, ServiceController],
+  imports: [
+    PostsModule,
+    PrismaModule,
+    UserModule,
+    CategoriesModule,
+    SearchModule,
+  ],
+  controllers: [AppController, PostsController],
   providers: [AppService, PostsService],
 })
 export class AppModule {}
