@@ -54,4 +54,12 @@ export class SearchController {
 
     return { posts: posts, totalPages: totalPages };
   }
+
+  //filtro por texto
+  @Get('posts/:searchTxt')
+  async searchPostTxt(@Param('searchTxt') searchTxt: string) {
+    const posts = await this.searchService.searchPostByText(searchTxt);
+
+    return { posts: posts, totalPages: 1 };
+  }
 }

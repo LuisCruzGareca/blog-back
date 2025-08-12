@@ -49,6 +49,9 @@ export class PostsService {
   async findOne(id: number) {
     return this.prismaService.post.findUnique({
       where: { id },
+      include: {
+        likes: true, // incluir los likes
+      },
     });
   }
   async deletePost(id: number) {

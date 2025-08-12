@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { contains } from 'class-validator';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -65,6 +64,35 @@ export class SearchService {
     return this.prismaService.post.count({
       //where bacio
       where: conditions,
+    });
+  }
+
+  async searchPostByText(searchTxt: string) {
+    return this.prismaService.post.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        postCategories: {
+          include: {
+            categorie: true,
+          },
+        },
+      },
+      where: {
+        OR: [
+          {
+            title: {
+              contains: searchTxt,
+            },
+          },
+          {
+            content: {
+              contains: searchTxt,
+            },
+          },
+        ],
+      },
     });
   }
 }

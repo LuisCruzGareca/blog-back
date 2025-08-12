@@ -8,6 +8,8 @@ import { PostsService } from './posts/posts.service';
 import { UserModule } from './user/user.module';
 import { CategoriesModule } from './categories/categories.module';
 import { SearchModule } from './search/search.module';
+import { CommentModule } from './comment/comment.module';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { SearchModule } from './search/search.module';
     UserModule,
     CategoriesModule,
     SearchModule,
+    CommentModule,
+    LikesModule,
   ],
   controllers: [AppController, PostsController],
   providers: [AppService, PostsService],
