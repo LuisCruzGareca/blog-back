@@ -10,6 +10,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { SearchModule } from './search/search.module';
 import { CommentModule } from './comment/comment.module';
 import { LikesModule } from './likes/likes.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { LikesModule } from './likes/likes.module';
     SearchModule,
     CommentModule,
     LikesModule,
+    AuthModule,
   ],
   controllers: [AppController, PostsController],
   providers: [AppService, PostsService],

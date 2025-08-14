@@ -7,10 +7,12 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/CreateDto.dto';
 import { EditPostDto } from './dto/editDto.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('posts')
 export class PostsController {
@@ -21,6 +23,7 @@ export class PostsController {
     await this.postService.createPost(createPostDto);
     return { message: 'ok' };
   }
+  // @UseGuards(AuthGuard('jwt'))
   @Get('list')
   findAll() {
     //retorname el objeto que esta en postService con el nombre que cree que es findAll

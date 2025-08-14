@@ -11,14 +11,15 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import * as bcrypt from 'bcrypt';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('create')
-  createUser(@Body() createUserDto: CreateUserDto) {
-    this.userService.createUser(createUserDto);
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    const hashPassword = await bcrypt.hash(createUserDto.password, 10);
+    this.userService.createUser({ ...createUserDto, password: hashPassword });
     return { message: 'ok' };
   }
 
