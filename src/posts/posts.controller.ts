@@ -41,9 +41,12 @@ export class PostsController {
     return this.postService.deletePost(id);
   }
 
-  @Patch('edit')
-  updatePosts(@Body() editPostDto: EditPostDto) {
-    this.postService.updatePosts(editPostDto);
+  @Patch('edit/:id')
+  updatePosts(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() editPostDto: EditPostDto,
+  ) {
+    this.postService.updatePosts(+id, editPostDto);
     return { message: 'ok' };
   }
 }

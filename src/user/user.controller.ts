@@ -27,6 +27,10 @@ export class UserController {
   findAll() {
     return this.userService.findAll();
   }
+  @Get('list/:id')
+  async listUserId(@Param('id', ParseIntPipe) id: number) {
+    return await this.userService.listUserId(id);
+  }
 
   @Patch('edit')
   updateUser(@Body() updateUserDto: UpdateUserDto) {

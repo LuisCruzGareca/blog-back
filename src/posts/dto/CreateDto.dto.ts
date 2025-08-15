@@ -18,10 +18,6 @@ export class CreatePostDto {
   @IsString()
   content: string;
 
-  @IsBoolean()
-  @IsOptional()
-  published?: boolean;
-
   @IsNotEmpty()
   @IsNumber()
   @IsInt()
