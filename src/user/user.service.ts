@@ -21,7 +21,6 @@ export class UserService {
     return this.prismaService.user.findMany();
   }
   async findEmail(email: string) {
-    console.log(email);
     return await this.prismaService.user.findUnique({
       where: {
         email,

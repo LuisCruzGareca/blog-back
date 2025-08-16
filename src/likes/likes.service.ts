@@ -1,11 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class LikesService {
   constructor(private prismaService: PrismaService) {}
 
-  async togleLike(userId: number, postId: number) {
+  async toggleLike(userId: number, postId: number) {
+    if (!userId) {
+      throw new UnauthorizedException('Debes iniciar sesión para dar like');
+    }
+
+    // Verificar que el post exista
+    const postExists = await this.prismaService.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!postExists) {
+      throw new NotFoundException('El post no existe');
+    }
+
+    // Verificar si ya existe el like
     const existingLike = await this.prismaService.like.findUnique({
       where: { postId_userId: { userId, postId } },
     });
@@ -14,14 +32,14 @@ export class LikesService {
       await this.prismaService.like.delete({
         where: { postId_userId: { userId, postId } },
       });
-      return { message: 'Like eliminado' };
+      return { likedByUser: false, message: 'Like eliminado' };
     }
 
     await this.prismaService.like.create({
       data: { userId, postId },
     });
 
-    return { message: 'Like agregado' };
+    return { likedByUser: true, message: 'Like agregado' };
   }
 
   async namberLikes(postId: number) {

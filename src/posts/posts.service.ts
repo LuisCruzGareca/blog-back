@@ -12,7 +12,6 @@ export class PostsService {
       data: {
         title: createPostDto.title,
         content: createPostDto.content,
-        published: createPostDto.published ?? false, // por defecto false si no viene
         author: {
           connect: { id: createPostDto.authorId }, // relación con usuario
         },
@@ -65,7 +64,6 @@ export class PostsService {
       data: {
         title: editDto.title,
         content: editDto.content,
-        published: editDto.published,
       },
     });
   }

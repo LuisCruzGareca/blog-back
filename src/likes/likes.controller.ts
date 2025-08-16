@@ -5,27 +5,37 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { LikesService } from './likes.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('likes')
 export class LikesController {
   constructor(private readonly likesService: LikesService) {}
 
-  @Post()
-  async togleLike(@Body() body: { userId: number; postId: number }) {
-    return this.likesService.togleLike(body.userId, body.postId);
+  @Post(':postId')
+  @UseGuards(AuthGuard('jwt'))
+  async toggleLike(@Param('postId', ParseIntPipe) postId: number, @Req() req) {
+    const userId = (req.user as { id: number }).id;
+
+    return this.likesService.toggleLike(userId, postId);
   }
-  @Get(':postId')
+  @Get('post/:postId')
   async namberLikes(@Param('postId', ParseIntPipe) postId: number) {
     return this.likesService.namberLikes(postId);
   }
-
-  @Get(':postId/user/:userId')
+  @Get('user/:postId')
+  @UseGuards(AuthGuard('jwt'))
   async checkUserLike(
-    @Param('postId') postId: string,
-    @Param('userId') userId: string,
+    @Param('postId', ParseIntPipe) postId: number,
+    @Req() req,
   ) {
-    return this.likesService.checkUserLike(Number(postId), Number(userId));
+    console.log('User en req:', req.user); //
+
+    const userId = (req.user as { id: number }).id;
+
+    return this.likesService.checkUserLike(postId, userId);
   }
 }
