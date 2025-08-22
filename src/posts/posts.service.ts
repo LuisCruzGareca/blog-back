@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreatePostDto } from './dto/CreateDto.dto';
-import { EditPostDto } from './dto/editDto.dto';
+import { EditPostDto } from './dto/EditPostDto';
+import { CreatePostDto } from './dto/CreatePostDto';
 
 @Injectable()
 export class PostsService {
@@ -46,7 +46,7 @@ export class PostsService {
     });
   }
   async findOne(id: number) {
-    return this.prismaService.post.findUnique({
+    return await this.prismaService.post.findUnique({
       where: { id },
       include: {
         likes: true, // incluir los likes
@@ -58,9 +58,9 @@ export class PostsService {
     await this.prismaService.post.delete({ where: { id } });
   }
 
-  async updatePosts(editDto: EditPostDto) {
+  async updatePosts(id: number, editDto: EditPostDto) {
     return await this.prismaService.post.update({
-      where: { id: editDto.id },
+      where: { id: id },
       data: {
         title: editDto.title,
         content: editDto.content,

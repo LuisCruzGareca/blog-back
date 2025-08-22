@@ -20,6 +20,14 @@ export class UserService {
   async findAll() {
     return this.prismaService.user.findMany();
   }
+
+  async listUserId(id: number) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
   async findEmail(email: string) {
     return await this.prismaService.user.findUnique({
       where: {

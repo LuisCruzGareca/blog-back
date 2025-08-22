@@ -11,9 +11,16 @@ import { SearchModule } from './search/search.module';
 import { CommentModule } from './comment/comment.module';
 import { LikesModule } from './likes/likes.module';
 import { AuthModule } from './auth/auth.module';
+import { PhotoModule } from './photo/photo.module';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'), // carpeta donde guardaremos las fotos
+      serveRoot: '/uploads', // se expondrá en http://host:puerto/uploads/...
+    }),
     PostsModule,
     PrismaModule,
     UserModule,
@@ -22,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
     CommentModule,
     LikesModule,
     AuthModule,
+    PhotoModule,
   ],
   controllers: [AppController, PostsController],
   providers: [AppService, PostsService],
