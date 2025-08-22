@@ -19,7 +19,10 @@ export class UserController {
   @Post('create')
   async createUser(@Body() createUserDto: CreateUserDto) {
     const hashPassword = await bcrypt.hash(createUserDto.password, 10);
-    this.userService.createUser({ ...createUserDto, password: hashPassword });
+    await this.userService.createUser({
+      ...createUserDto,
+      password: hashPassword,
+    });
     return { message: 'ok' };
   }
 
@@ -33,14 +36,13 @@ export class UserController {
   }
 
   @Patch('edit')
-  updateUser(@Body() updateUserDto: UpdateUserDto) {
-    this.userService.updateUser(updateUserDto);
+  async updateUser(@Body() updateUserDto: UpdateUserDto) {
+    await this.userService.updateUser(updateUserDto);
     return { message: 'ok' };
   }
 
   @Delete(':id')
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
-    console.log(id);
     return this.userService.deleteUser(id);
   }
 }

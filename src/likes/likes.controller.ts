@@ -5,27 +5,35 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { LikesService } from './likes.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('likes')
 export class LikesController {
   constructor(private readonly likesService: LikesService) {}
 
-  @Post()
-  async togleLike(@Body() body: { userId: number; postId: number }) {
-    return this.likesService.togleLike(body.userId, body.postId);
-  }
-  @Get(':postId')
-  async namberLikes(@Param('postId', ParseIntPipe) postId: number) {
-    return this.likesService.namberLikes(postId);
-  }
+  @Post(':postId')
+  @UseGuards(AuthGuard('jwt'))
+  async toggleLike(@Param('postId', ParseIntPipe) postId: number, @Req() req) {
+    const userId = (req.user as { id: number }).id;
 
-  @Get(':postId/user/:userId')
+    return await this.likesService.toggleLike(userId, postId);
+  }
+  @Get('post/:postId')
+  async numberLikes(@Param('postId', ParseIntPipe) postId: number) {
+    return await this.likesService.numberLikes(postId);
+  }
+  @Get('user/:postId')
+  @UseGuards(AuthGuard('jwt'))
   async checkUserLike(
-    @Param('postId') postId: string,
-    @Param('userId') userId: string,
+    @Param('postId', ParseIntPipe) postId: number,
+    @Req() req,
   ) {
-    return this.likesService.checkUserLike(Number(postId), Number(userId));
+    const userId = (req.user as { id: number }).id;
+
+    return this.likesService.checkUserLike(postId, userId);
   }
 }
