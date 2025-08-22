@@ -10,18 +10,53 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/CreateDto.dto';
-import { EditPostDto } from './dto/editDto.dto';
+import { CreatePostDto } from './dto/CreatePostDto';
+import { EditPostDto } from './dto/EditPostDto';
 import { AuthGuard } from '@nestjs/passport';
+import { existsSync, mkdirSync, renameSync } from 'fs';
+import { PhotoService } from 'src/photo/photo.service';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postService: PostsService) {}
+  constructor(
+    private readonly postService: PostsService,
+    private readonly photoService: PhotoService,
+  ) {}
 
   @Post('create')
   async createPost(@Body() createPostDto: CreatePostDto) {
-    await this.postService.createPost(createPostDto);
-    return { message: 'ok' };
+    console.log('Datos recibidos del frontend:', createPostDto);
+    console.log('Fotos a procesar:', createPostDto.photos);
+
+    // 1. Crear el post
+    const post = await this.postService.createPost(createPostDto);
+    const postFolder = `./uploads/${post.id}`;
+    if (!existsSync(postFolder)) {
+      mkdirSync(postFolder, { recursive: true });
+    }
+
+    // 3. Mover fotos desde /tmp y registrar en DB
+    const savedPhotos: string[] = [];
+    if (Array.isArray(createPostDto.photos)) {
+      for (const filename of createPostDto.photos) {
+        console.log('Procesando archivo:', filename); // <- aquí ve
+        const tmpPath = `./uploads/tmp/${filename}`;
+        const finalPath = `${postFolder}/${filename}`;
+        if (existsSync(tmpPath)) {
+          renameSync(tmpPath, finalPath);
+          await this.photoService.createPhoto(post.id, filename);
+          savedPhotos.push(filename);
+        } else {
+          console.warn('Archivo no encontrado en tmp:', tmpPath);
+        }
+      }
+    }
+
+    return {
+      message: 'Post creado con fotos',
+      post,
+      photos: savedPhotos,
+    };
   }
   // @UseGuards(AuthGuard('jwt'))
   @Get('list')
@@ -30,9 +65,9 @@ export class PostsController {
     return this.postService.findAll();
   }
 
-  @Get('/list/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.findOne(id);
+  @Get('list/:id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.postService.findOne(id);
   }
 
   @Delete(':id')

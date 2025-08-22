@@ -25,8 +25,12 @@ export class CreatePostDto {
   authorId: number; // Relación con User (author)
 
   @IsArray()
-  @ArrayMinSize(1)
-  @IsInt({ each: true })
   @Type(() => Number)
+  @IsNumber({}, { each: true })
   categories: number[];
+
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  photos: string[];
 }

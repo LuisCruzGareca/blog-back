@@ -1,18 +1,21 @@
 import {
-  BadRequestException,
   Controller,
-  HttpStatus,
-  ParseFilePipeBuilder,
   Post,
   UploadedFile,
   UseInterceptors,
+  Param,
+  ParseIntPipe,
+  BadRequestException,
+  Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, unlink, unlinkSync } from 'fs';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
+import { promisify } from 'util';
 
 @Controller('photo')
 export class PhotoController {
@@ -20,18 +23,12 @@ export class PhotoController {
     private readonly photoService: PhotoService,
     private readonly configService: ConfigService,
   ) {}
+
   @Post('')
-  //Capturar y procesar el archivo antes de tu lógica
-  //Cuando llega una petición multipart/form-data con un archivo (como una imagen), NestJS por defecto no sabe cómo manejarlo.
   @UseInterceptors(
-    //Lo procesa con Multer (la librería que hace todo el trabajo de leer, validar y guardar).
     FileInterceptor('file', {
-      //storage::En este contexto de subir fotos con NestJS y Multer, el storage es la configuración que le dice a Multer dónde y cómo guardar el archivo que recibes.
-      //diskStorage ::dice: “guarda este archivo físicamente en una carpeta de mi servidor”.
       storage: diskStorage({
-        //define en qué carpeta se va a guardar el archivo.s
         destination: (req, file, callback) => {
-          //define con qué nombre se va a guardar el archivo.
           const uploadPath = `./uploads/tmp`;
           if (!existsSync(uploadPath)) {
             mkdirSync(uploadPath, { recursive: true });
@@ -45,15 +42,85 @@ export class PhotoController {
             Math.floor(Math.random() * 1e6).toString(36);
 
           const ext = extname(file.originalname);
-          callback(null, `${filename}.jpg`); // ✅ sin símbolo $
+          callback(null, `${filename}${ext}`);
         },
       }),
     }),
   )
   async uploadNewPhoto(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No se subió ningún archivo');
+    }
     return {
       photo: this.configService.get<string>('PHOTOS_TMP_URL') + file.filename,
       filename: file.filename,
     };
+  }
+
+  @Post(':postId')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, callback) => {
+          const postId = req.params.postId;
+          const uploadPath = `./uploads/${postId}`; // Ruta dinámica para cada producto
+
+          // Crear la  carpeta si no existe
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
+
+          callback(null, uploadPath); // Define el destino como laA carpeta del producto
+        },
+
+        filename: (req, file, callback) => {
+          const filename =
+            Date.now().toString(36) +
+            '-' +
+            Math.floor(Math.random() * 1e6).toString(36);
+          const ext = extname(file.originalname);
+          callback(null, `${filename}.jpg`);
+        },
+      }),
+    }),
+  )
+  async uploadEditPhoto(
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Param('postId', ParseIntPipe) postId: number,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No se subió ningún archivo');
+    }
+    await this.photoService.createPhoto(postId, file.filename);
+    return {
+      photo:
+        (this.configService.get<string>('PHOTOS_BASE_URL') ?? '') +
+        postId +
+        '/' +
+        file.filename,
+    };
+  }
+
+  @Delete(':id')
+  async deletePhoto(@Param('id', ParseIntPipe) id: number) {
+    const unlinkAsync = promisify(unlink);
+    const photo = await this.photoService.findById(id);
+    const photoPath = './uploads/' + photo?.path;
+    if (existsSync(photoPath)) {
+      unlinkAsync(photoPath);
+    }
+    this.photoService.deletePhoto(id);
+  }
+  @Delete('by-filename/:filename')
+  async deleteByFilename(@Param('filename') filename: string) {
+    const photoPath = join('./uploads/tmp', filename);
+
+    if (!existsSync(photoPath)) {
+      throw new NotFoundException('Archivo no encontrado');
+    }
+
+    unlinkSync(photoPath); // Borra el archivo de forma síncrona
+
+    return { message: 'Archivo eliminado correctamente' };
   }
 }

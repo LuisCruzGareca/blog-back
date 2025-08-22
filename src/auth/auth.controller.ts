@@ -11,6 +11,6 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
-    return this.authService.login(user);
+    return { ...this.authService.login(user), user: user };
   }
 }
