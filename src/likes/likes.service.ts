@@ -42,7 +42,7 @@ export class LikesService {
     return { likedByUser: true, message: 'Like agregado' };
   }
 
-  async namberLikes(postId: number) {
+  async numberLikes(postId: number) {
     const count = await this.prismaService.like.count({
       where: { postId },
     });

@@ -20,11 +20,11 @@ export class LikesController {
   async toggleLike(@Param('postId', ParseIntPipe) postId: number, @Req() req) {
     const userId = (req.user as { id: number }).id;
 
-    return this.likesService.toggleLike(userId, postId);
+    return await this.likesService.toggleLike(userId, postId);
   }
   @Get('post/:postId')
-  async namberLikes(@Param('postId', ParseIntPipe) postId: number) {
-    return this.likesService.namberLikes(postId);
+  async numberLikes(@Param('postId', ParseIntPipe) postId: number) {
+    return await this.likesService.numberLikes(postId);
   }
   @Get('user/:postId')
   @UseGuards(AuthGuard('jwt'))
@@ -32,8 +32,6 @@ export class LikesController {
     @Param('postId', ParseIntPipe) postId: number,
     @Req() req,
   ) {
-    console.log('User en req:', req.user); //
-
     const userId = (req.user as { id: number }).id;
 
     return this.likesService.checkUserLike(postId, userId);
